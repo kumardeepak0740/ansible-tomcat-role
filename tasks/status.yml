@@ -1,0 +1,7 @@
+---
+- shell: systemctl status "{{ tomcat_service_name }}"
+  register: tomcat_status
+
+- debug:
+   var: tomcat_status
+...

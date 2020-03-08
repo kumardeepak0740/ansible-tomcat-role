@@ -1,0 +1,16 @@
+---
+# tasks file for ansible-tomcat-role
+
+- name: Install tomcat
+  import_tasks: install.yml
+  when: ( tomcat_state == "present" ) and ( ansible_os_family == 'RedHat' or ansible_os_family == 'Debian' )
+
+- name: Configure tomcat
+  import_tasks: configure.yml
+  when: ( tomcat_state == "present" ) and ( ansible_os_family == 'RedHat' or ansible_os_family == 'Debian' )
+
+- name: Checking tomcat status
+  import_tasks: status.yml
+  when: ( tomcat_state == "present" ) and ( ansible_os_family == 'RedHat' or ansible_os_family == 'Debian' )
+
+

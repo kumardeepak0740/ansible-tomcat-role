@@ -1,0 +1,53 @@
+- name: Configuration of permission 
+  file: 
+    dest: "{{ tomcat_install_path }}/apache-tomcat-{{ tomcat_version }}"
+    owner: "{{ tomcat_user }}" 
+    group: "{{ tomcat_group }}" 
+    recurse: yes
+
+
+- name: Setup server.xml
+  template:
+    src: server.xml.j2
+    dest: "{{ tomcat_install_path }}/apache-tomcat-{{ tomcat_version }}/conf/server.xml"
+  notify: restart tomcat
+
+- name: Configure access to Manager app (from localhost only or from anywhere)
+  template:
+    src: context.xml.j2
+    dest: "{{ tomcat_install_path }}/apache-tomcat-{{ tomcat_version }}/webapps/manager/META-INF/context.xml"
+  notify: restart tomcat
+
+- name: Configure access to Host Manager (from localhost only or from anywhere)
+  template:
+    src: host-context.xml.j2
+    dest: "{{ tomcat_install_path }}/apache-tomcat-{{ tomcat_version }}/webapps/host-manager/META-INF/context.xml"
+  notify: restart tomcat
+
+- name: Setup tomcat-users.xml
+  template:
+    src: tomcat-users.xml.j2 
+    dest: "{{ tomcat_install_path }}/apache-tomcat-{{ tomcat_version }}/conf/tomcat-users.xml"
+  notify: restart tomcat
+
+- name: Configure service file {{ tomcat_service_name }}.service
+  template:
+    src: "{{ tomcat_template_systemd_service }}"
+    dest: /usr/lib/systemd/system/{{ tomcat_service_name }}.service
+  when: ansible_os_family == 'RedHat'
+  notify: restart tomcat
+
+- name: Configure service file {{ tomcat_service_name }}.service
+  template:
+    src: "{{ tomcat_template_systemd_service }}"
+    dest: /etc/systemd/system/{{ tomcat_service_name }}.service
+  when: ansible_os_family == 'Debian'
+  notify: restart tomcat
+#
+
+- name: Enable tomcat service on startup and starting the service
+  systemd:
+    name: "{{ tomcat_service_name }}"
+    enabled: "{% if tomcat_service_enabled_on_startup %}yes{% else %}no{% endif %}"
+    daemon_reload: yes
+
